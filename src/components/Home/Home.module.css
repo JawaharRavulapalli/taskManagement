@@ -1,0 +1,10 @@
+.homeContainer {
+  text-align: center;
+  padding: 2rem;
+}
+
+.homeButton {
+  margin: 0.5rem;
+  padding: 10px 20px;
+  font-size: 16px;
+}
