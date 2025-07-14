@@ -16,9 +16,26 @@ const AllTasksPage = () => {
     deleteTask,
   } = useTasks();
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [priorityFilter, setPriorityFilter] = useState('ALL');
+
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
+
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(task => {
+      const matchesSearch =
+        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (task.description && task.description.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      const matchesStatus = statusFilter === 'ALL' || task.status === statusFilter;
+      const matchesPriority = priorityFilter === 'ALL' || task.priority === priorityFilter;
+
+      return matchesSearch && matchesStatus && matchesPriority;
+    });
+  }, [tasks, searchTerm, statusFilter, priorityFilter]);
 
   if (loading) return <p>Loading tasks...</p>;
   if (error) return <p>Error: {error}</p>;
@@ -32,8 +49,42 @@ const AllTasksPage = () => {
         </button>
       </div>
 
-      {tasks.length === 0 ? (
-        <p>No tasks available.</p>
+      <div className={styles.filters}>
+        <input
+          type="text"
+          placeholder="Search tasks..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className={styles.searchInput}
+        />
+
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className={styles.dropdown}
+        >
+          {STATUS_OPTIONS.map(status => (
+            <option key={status} value={status}>
+              {status === 'ALL' ? 'All Statuses' : status.replace('_', ' ')}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={priorityFilter}
+          onChange={(e) => setPriorityFilter(e.target.value)}
+          className={styles.dropdown}
+        >
+          {PRIORITY_OPTIONS.map(priority => (
+            <option key={priority} value={priority}>
+              {priority === 'ALL' ? 'All Priorities' : priority}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {filteredTasks.length === 0 ? (
+        <p>No tasks found.</p>
       ) : (
         <table className={styles.taskTable}>
           <thead>
@@ -44,11 +95,13 @@ const AllTasksPage = () => {
               <th>Due Date</th>
               <th>Priority</th>
               <th>Status</th>
+              <th>Estimated Hours</th>
+              <th>Actual Hours</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {tasks.map(task => (
+            {filteredTasks.map(task => (
               <tr key={task.id}>
                 <td>{task.id}</td>
                 <td>{task.title}</td>
@@ -56,6 +109,9 @@ const AllTasksPage = () => {
                 <td>{task.dueDate ? new Date(task.dueDate).toLocaleString() : 'N/A'}</td>
                 <td>{task.priority}</td>
                 <td>{task.status}</td>
+                <td>{task.estimatedHours}</td>
+                <td>{task.actualHours}</td>
+
                 <td>
                   <button
                     onClick={() => navigate(`/tasks/edit/${task.id}`)}

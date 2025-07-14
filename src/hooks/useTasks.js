@@ -21,6 +21,22 @@ const useTasks = () => {
   }
 };
 
+  const fetchTaskStats = useCallback(async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/stats`);
+        const data = await handleResponse(response);
+        return data;
+      } catch (err) {
+        setError(err.message || 'Failed to fetch task stats');
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    }, []);
+
   const fetchTasks = useCallback(async (filters = {}) => {
     setLoading(true);
     setError(null);
@@ -148,6 +164,7 @@ const useTasks = () => {
     updateTaskStatus,
     deleteTask,
     searchTasks,
+    fetchTaskStats,
   };
 };
 
